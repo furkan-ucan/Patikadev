@@ -25,9 +25,10 @@ public class Helper {
         };
     }
 
-    public static boolean isFİeldEmpty(JTextField field){
+    public static boolean isFieldEmpty(JTextField field){
         return field.getText().trim().isEmpty();
     }
+
 
     public static void showMsg(String str){
         optionPageTr();
