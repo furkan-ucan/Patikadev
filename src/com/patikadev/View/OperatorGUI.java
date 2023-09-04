@@ -5,6 +5,8 @@ import com.patikadev.Model.Operator;
 import com.patikadev.Model.Users;
 
 import javax.swing.*;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -77,6 +79,26 @@ public class OperatorGUI extends JFrame {
                 cmb_user_type.setSelectedItem(tbl_user_list.getValueAt(selected_row, 4).toString());
             }catch (Exception exception) {
                 System.out.println(exception.getMessage());
+            }
+        });
+
+        tbl_user_list.getModel().addTableModelListener(new TableModelListener() {
+            @Override
+            public void tableChanged(TableModelEvent e) {
+                if (e.getType() == TableModelEvent.UPDATE) {
+                    int user_id = Integer.parseInt(tbl_user_list.getValueAt(tbl_user_list.getSelectedRow(), 0).toString());
+                    String user_name = tbl_user_list.getValueAt(tbl_user_list.getSelectedRow(), 1).toString();
+                    String user_username = tbl_user_list.getValueAt(tbl_user_list.getSelectedRow(), 2).toString();
+                    String user_password = tbl_user_list.getValueAt(tbl_user_list.getSelectedRow(), 3).toString();
+                    String users_type = tbl_user_list.getValueAt(tbl_user_list.getSelectedRow(), 4).toString();
+
+                    if (Users.update(user_id, user_name, user_username, user_password, users_type)) {
+                        Helper.showMsg("success");
+                        refreshUserList();
+                    }else {
+                        Helper.showMsg("error");
+                    }
+                }
             }
         });
 

@@ -124,5 +124,21 @@ public class Users {
         return false;
     }
 
+    public static boolean update(int user_id, String user_name, String user_username, String user_password, String users_type) {
+        String query = "UPDATE users SET user_name = ?, user_username = ?, user_password = ?, users_type = ? WHERE user_id = ?";
+        try {
+            PreparedStatement pr = DBConnector.getConnection().prepareStatement(query);
+            pr.setString(1, user_name);
+            pr.setString(2, user_username);
+            pr.setString(3, user_password);
+            pr.setString(4, users_type);
+            pr.setInt(5, user_id);
+            return pr.executeUpdate() != -1;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return false;
+    }
+
 
 }
