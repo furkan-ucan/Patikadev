@@ -19,6 +19,12 @@ public class Patika {
 
     public static boolean delete(int patika_id) {
         String query = "DELETE FROM patika WHERE patika_id = ?";
+        ArrayList<Course> courseList = Course.getList();
+        for (Course course : courseList) {
+            if (course.getPatika_id() == patika_id) {
+                Course.delete(course.getCourse_id());
+            }
+        }
         try {
             PreparedStatement pst = DBConnector.getConnection().prepareStatement(query);
             pst.setInt(1,patika_id);

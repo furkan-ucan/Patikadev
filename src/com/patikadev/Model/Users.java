@@ -2,6 +2,7 @@ package com.patikadev.Model;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import com.patikadev.Helper.DBConnector;
@@ -112,11 +113,38 @@ public class Users {
         return obj;
     }
 
-    public static boolean delete(int user_id) {
-        String query = "DELETE FROM users WHERE user_id = ?";
+    public static Users getFetch(int user_id){
+        Users obj = null;
+        String query = "SELECT * FROM users WHERE user_id = ?";
         try {
             PreparedStatement pr = DBConnector.getConnection().prepareStatement(query);
             pr.setInt(1, user_id);
+            ResultSet rs = pr.executeQuery();
+            if(rs.next()){
+                obj = new Users();
+                obj.setUser_id(rs.getInt("user_id"));
+                obj.setUser_name(rs.getString("user_name"));
+                obj.setUser_username(rs.getString("user_username"));
+                obj.setUser_password(rs.getString("user_password"));
+                obj.setUsers_type(rs.getString("users_type"));
+            }
+        } catch ( SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        return obj;
+    }
+
+    public static boolean delete(int user_id) {
+        String query = "DELETE FROM users WHERE user_id = ?";
+        ArrayList<Course> courseList = Course.getListByUser(user_id);
+        for (Course course : courseList) {
+            Course.delete(course.getCourse_id());
+        }
+        try {
+            PreparedStatement pr = DBConnector.getConnection().prepareStatement(query);
+            pr.setInt(1, user_id);
+
             return pr.executeUpdate() != -1;
         } catch (Exception e) {
             System.out.println(e.getMessage());

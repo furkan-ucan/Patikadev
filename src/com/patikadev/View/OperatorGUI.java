@@ -1,6 +1,7 @@
 package com.patikadev.View;
 
 import com.patikadev.Helper.*;
+import com.patikadev.Model.Course;
 import com.patikadev.Model.Operator;
 import com.patikadev.Model.Patika;
 import com.patikadev.Model.Users;
@@ -8,6 +9,7 @@ import com.patikadev.Model.Users;
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
@@ -38,7 +40,18 @@ public class OperatorGUI extends JFrame {
     private JPanel pnl_patika_add;
     private JTextField fld_patika_name;
     private JButton btn_patika_add;
+    private JPanel pnl_course_form;
+    private JScrollPane scrl_course_list;
+    private JTable tbl_course_list;
+    private JPanel pnl_course_add;
+    private JTextField fld_course_name;
+    private JTextField fld_course_lang;
+    private JComboBox cmb_course_patika;
+    private JComboBox cmb_course_user;
+    private JButton btn_course_add;
     private DefaultTableModel mdl_user_list;
+    private DefaultTableModel mdl_course_list;
+    private Object[] row_course_list;
 
     private Object[] row_user_list;
 
@@ -108,8 +121,22 @@ public class OperatorGUI extends JFrame {
                 }
 
                 refreshUserList();
+                loadEducatorItems();
+                refreshCourseList();
             }
         });
+        //ModelCourseList
+        mdl_course_list = new DefaultTableModel();
+        Object[] col_course_list = {"ID", "Course Name", "Lang", "Patika", "Educator"};
+        mdl_course_list.setColumnIdentifiers(col_course_list);
+        row_course_list = new Object[col_course_list.length];
+        refreshCourseList();
+        tbl_course_list.setModel(mdl_course_list);
+        tbl_course_list.getTableHeader().setReorderingAllowed(false);
+        tbl_course_list.getColumnModel().getColumn(0).setMaxWidth(50);
+        loadItems();
+        loadEducatorItems();
+
 
         //ModelPatikaList
 
@@ -128,6 +155,8 @@ public class OperatorGUI extends JFrame {
                 @Override
                 public void windowClosed(java.awt.event.WindowEvent windowEvent) {
                     refreshPatikaList();
+                    loadItems();
+                    refreshCourseList();
                 }
             });
         });
@@ -139,6 +168,8 @@ public class OperatorGUI extends JFrame {
                if (Patika.delete(selected_id)) {
                    Helper.showMsg("success");
                    refreshPatikaList();
+                   loadItems();
+                   refreshCourseList();
                }else {
                    Helper.showMsg("error");
                }
@@ -179,6 +210,7 @@ public class OperatorGUI extends JFrame {
                 if (Users.add(user_name, user_username, user_password, users_type)) {
                     Helper.showMsg("success");
                     refreshUserList();
+                    loadEducatorItems();
 
                     fld_user_name.setText(null);
                     fld_user_username.setText(null);
@@ -198,6 +230,8 @@ public class OperatorGUI extends JFrame {
                     if (Users.delete(user_id)) {
                         Helper.showMsg("success");
                         refreshUserList();
+                        loadEducatorItems();
+                        loadItems();
                         fld_user_id.setText(null);
                         fld_user_name.setText(null);
                         fld_user_username.setText(null);
@@ -230,12 +264,41 @@ public class OperatorGUI extends JFrame {
                 if (com.patikadev.Model.Patika.add(patika_name)) {
                     Helper.showMsg("success");
                     refreshPatikaList();
+                    loadItems();
                     fld_patika_name.setText(null);
                 }else {
                     Helper.showMsg("error");
                 }
             }
         });
+
+        btn_course_add.addActionListener(e -> {
+             Item patikaItem = (Item) cmb_course_patika.getSelectedItem();
+             Item userItem = (Item) cmb_course_user.getSelectedItem();
+             if (Helper.isFieldEmpty(fld_course_name) || Helper.isFieldEmpty(fld_course_lang)) {
+                 Helper.showMsg("fill");
+            }else {
+                 if (Course.add(userItem.getKey(), patikaItem.getKey(), fld_course_name.getText(), fld_course_lang.getText())) {
+                     Helper.showMsg("success");
+                     refreshCourseList();
+                     fld_course_name.setText(null);
+                     fld_course_lang.setText(null);
+                     cmb_course_patika.setSelectedIndex(0);
+                     cmb_course_user.setSelectedIndex(0);
+                 }else {
+                     Helper.showMsg("error");
+                 }
+
+             }
+        });
+    }
+
+    private void refreshCourseList() {
+        mdl_course_list.setRowCount(0);
+        for (com.patikadev.Model.Course obj : com.patikadev.Model.Course.getList()) {
+            Object[] row_course_list = {obj.getCourse_id(), obj.getCourse_name(), obj.getLanguage(), obj.getPatika().getPatika_name(), obj.getEducator().getUser_name()};
+            mdl_course_list.addRow(row_course_list);
+        }
     }
 
     private void refreshPatikaList() {
@@ -258,6 +321,22 @@ public class OperatorGUI extends JFrame {
         for(Users obj : list){ // add the new data to the model table
             Object[] row_user_list = {obj.getUser_id(), obj.getUser_name(), obj.getUser_username(), obj.getUser_password(), obj.getUsers_type()}; // create a new row object array
             mdl_user_list.addRow(row_user_list); // add the row to the model table
+        }
+    }
+
+    public  void loadItems(){
+        cmb_course_patika.removeAllItems();
+        for (Patika item : Patika.getList()) {
+            cmb_course_patika.addItem(new Item(item.getPatika_id(), item.getPatika_name()));
+        }
+    }
+
+    public void loadEducatorItems(){
+        cmb_course_user.removeAllItems();
+        for (Users item : Users.getList()) {
+            if (item.getUsers_type().equals("educator")) {
+                cmb_course_user.addItem(new Item(item.getUser_id(), item.getUser_name()));
+            }
         }
     }
 
